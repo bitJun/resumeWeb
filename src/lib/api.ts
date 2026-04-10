@@ -7,7 +7,23 @@ import {
   ResumeExtraction
 } from "@/types/api";
 
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000").replace(/\/+$/, "");
+function resolveApiBaseUrl() {
+  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+    return "http://localhost:4000";
+  }
+
+  // In production, never silently fallback to localhost.
+  // Empty string means same-origin requests like /api/jobs.
+  return "";
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers ?? undefined);
